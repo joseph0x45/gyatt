@@ -40,6 +40,10 @@ cat > static/input.css <<EOF
 @import "tailwindcss";
 EOF
 
+cat > .gitignore <<EOF
+$project_name
+EOF
+
 cat > components/layout.templ <<EOF
 package components
 
