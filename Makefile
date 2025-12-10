@@ -10,3 +10,6 @@ test:
 
 resources:
 	tar -xf resources.tar
+
+compress-resources:
+	tar -cJf resources.tar.xz resources/
