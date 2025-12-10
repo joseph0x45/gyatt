@@ -8,6 +8,8 @@ import (
 	"os/exec"
 )
 
+var version = "dev"
+
 type Data struct {
 	ProjectName string
 }
@@ -205,6 +207,8 @@ func main() {
 	}
 	cmd := os.Args[1]
 	switch cmd {
+	case "version":
+		fmt.Println("gyatt version", version)
 	case "setup":
 		setup()
 	case "init":
