@@ -9,7 +9,7 @@ test:
 	cd testing && ../gyatt init testing
 
 resources:
-	tar -xf resources.tar
+	tar -xf resources.tar.xz
 
 compress-resources:
 	tar -cJf resources.tar.xz resources/
