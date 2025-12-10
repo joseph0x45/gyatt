@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
 type Data struct {
@@ -27,21 +26,25 @@ func runCmd(command string, args ...string) error {
 	return cmd.Run()
 }
 
-func writeTemplate(fileSystem embed.FS, name, destination string, data Data) error {
-	bytes, err := fileSystem.ReadFile(filepath.Join("templates", name))
+func writeTemplate(fileSystem embed.FS, name, destination string, data *Data, parseTemplate bool) error {
+	bytes, err := fileSystem.ReadFile(name)
 	if err != nil {
 		return err
 	}
-	tmpl, err := template.New(name).Parse(string(bytes))
-	if err != nil {
-		return err
+	if parseTemplate {
+		tmpl, err := template.New(name).Parse(string(bytes))
+		if err != nil {
+			return err
+		}
+		outputFile, err := os.Create(destination)
+		if err != nil {
+			return err
+		}
+		defer outputFile.Close()
+		return tmpl.Execute(outputFile, data)
 	}
-	outputFile, err := os.Create(destination)
-	if err != nil {
-		return err
-	}
-	defer outputFile.Close()
-	return tmpl.Execute(outputFile, data)
+	input, _ := fileSystem.ReadFile(name)
+	return os.WriteFile(destination, input, 0644)
 }
 
 //go:embed resources/*
@@ -52,6 +55,8 @@ var templatesFS embed.FS
 
 func printHelp() {
 	fmt.Println("Initialize a new project: gyatt init <project-name>")
+	fmt.Println("Add a new dependency to the project: gyatt add-dependency <dependency-name>")
+	fmt.Println("Available dependencies are: 'htmx', 'alpine', 'toastify'")
 }
 
 func initProject() {
@@ -81,35 +86,75 @@ func initProject() {
 	}
 	projectFiles := []projectFile{
 		{
-			Name:             "main.gotmpl",
+			Name:             "templates/main.gotmpl",
 			WriteDestination: "main.go",
 			FileSystem:       templatesFS,
 		},
 		{
-			Name:             "db.gotmpl",
+			Name:             "templates/db.gotmpl",
 			WriteDestination: "db/db.go",
 			FileSystem:       templatesFS,
 		},
 		{
-			Name:             "input.css",
+			Name:             "templates/input.css",
 			WriteDestination: "static/input.css",
 			FileSystem:       templatesFS,
 		},
 		{
-			Name:             "gitignore.gotmpl",
+			Name:             "templates/gitignore.gotmpl",
 			WriteDestination: ".gitignore",
 			FileSystem:       templatesFS,
 		},
 		{
-			Name:             "Makefile",
+			Name:             "templates/Makefile",
 			WriteDestination: "Makefile",
 			FileSystem:       templatesFS,
 		},
 	}
 	for _, file := range projectFiles {
-		if err := writeTemplate(file.FileSystem, file.Name, file.WriteDestination, data); err != nil {
+		if err := writeTemplate(
+			file.FileSystem, file.Name,
+			file.WriteDestination, &data,
+			true,
+		); err != nil {
 			fmt.Printf("Failed to create %s: %s\n", file.Name, err.Error())
 		}
+	}
+}
+
+func addDependency() {
+	if len(os.Args) != 3 {
+		printHelp()
+		return
+	}
+	dependency := os.Args[2]
+	switch dependency {
+	case "htmx", "alpine":
+		if err := writeTemplate(
+			resourcesFS,
+			fmt.Sprintf("resources/%s.js", dependency),
+			fmt.Sprintf("static/%s.js", dependency),
+			nil,
+			false,
+		); err != nil {
+			fmt.Printf("Failed to add dependency %s: %s\n", dependency, err.Error())
+			return
+		}
+	case "toastify":
+		for _, dep := range []string{"toastify.css", "toastify.js"} {
+			if err := writeTemplate(
+				resourcesFS,
+				fmt.Sprintf("resources/%s", dep),
+				fmt.Sprintf("static/%s", dep),
+				nil,
+				false,
+			); err != nil {
+				fmt.Printf("Failed to add dependency %s: %s\n", dependency, err.Error())
+				return
+			}
+		}
+	default:
+		printHelp()
 	}
 }
 
@@ -122,6 +167,8 @@ func main() {
 	switch cmd {
 	case "init":
 		initProject()
+	case "add-dependency":
+		addDependency()
 	default:
 		printHelp()
 	}
