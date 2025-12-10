@@ -13,6 +13,12 @@ type Data struct {
 	ProjectName string
 }
 
+type projectFile struct {
+	Name             string
+	FileSystem       embed.FS
+	WriteDestination string
+}
+
 func runCmd(command string, args ...string) error {
 	cmd := exec.Command(command, args...)
 	cmd.Stderr = os.Stderr
@@ -66,18 +72,43 @@ func initProject() {
 		fmt.Println("Failed to init Go module: ", err.Error())
 		return
 	}
-	//Create the .gitignore
-	if err := writeTemplate(
-		templatesFS, "gitignore.gotmpl",
-		".gitignore", data,
-	); err != nil {
-		fmt.Println("Failed to create gitignore: ", err.Error())
-	}
 	//Create the directories
-	for _, dir := range []string{"handler", "db", "ui"} {
+	for _, dir := range []string{"handler", "db", "ui", "static"} {
 		if err := os.Mkdir(dir, 0755); err != nil {
 			fmt.Println("Failed to create folder: ", err.Error())
 			return
+		}
+	}
+	projectFiles := []projectFile{
+		{
+			Name:             "main.gotmpl",
+			WriteDestination: "main.go",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "db.gotmpl",
+			WriteDestination: "db/db.go",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "input.css",
+			WriteDestination: "static/input.css",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "gitignore.gotmpl",
+			WriteDestination: ".gitignore",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "Makefile",
+			WriteDestination: "Makefile",
+			FileSystem:       templatesFS,
+		},
+	}
+	for _, file := range projectFiles {
+		if err := writeTemplate(file.FileSystem, file.Name, file.WriteDestination, data); err != nil {
+			fmt.Printf("Failed to create %s: %s\n", file.Name, err.Error())
 		}
 	}
 }
