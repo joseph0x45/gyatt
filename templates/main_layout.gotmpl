@@ -1,0 +1,18 @@
+package layouts
+
+templ Base(children ...templ.Component) {
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{.ProjectName}}</title>
+    <link href="/static/styles.css" rel="stylesheet"/>
+  </head>
+  <body>
+    for _, child := range children {
+      @child
+    }
+  </body>
+  </html>
+}

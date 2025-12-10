@@ -78,8 +78,8 @@ func initProject() {
 		return
 	}
 	//Create the directories
-	for _, dir := range []string{"handler", "db", "ui", "static"} {
-		if err := os.Mkdir(dir, 0755); err != nil {
+	for _, dir := range []string{"handler", "db", "ui/layouts", "static"} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
 			fmt.Println("Failed to create folder: ", err.Error())
 			return
 		}
@@ -108,6 +108,16 @@ func initProject() {
 		{
 			Name:             "templates/Makefile",
 			WriteDestination: "Makefile",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "templates/main_layout.gotmpl",
+			WriteDestination: "ui/layouts/main.templ",
+			FileSystem:       templatesFS,
+		},
+		{
+			Name:             "templates/index.gotmpl",
+			WriteDestination: "ui/index.templ",
 			FileSystem:       templatesFS,
 		},
 	}
