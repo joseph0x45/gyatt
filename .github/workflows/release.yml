@@ -25,10 +25,12 @@ jobs:
 
       - name: Get version from tag
         run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+        
+      - name: Prepare resources
+        run: make resources
 
       - name: Build binary
         run: |
-          make resources
           GOOS=linux GOARCH=amd64 \
           go build -ldflags "-X main.version=${VERSION}" -o gyatt
 
