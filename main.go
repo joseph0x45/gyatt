@@ -120,6 +120,11 @@ func initProject() {
 			WriteDestination: "ui/index.templ",
 			FileSystem:       templatesFS,
 		},
+		{
+			Name:             "templates/go.sum",
+			WriteDestination: "go.sum",
+			FileSystem:       templatesFS,
+		},
 	}
 	for _, file := range projectFiles {
 		if err := writeTemplate(
@@ -128,6 +133,7 @@ func initProject() {
 			true,
 		); err != nil {
 			fmt.Printf("Failed to create %s: %s\n", file.Name, err.Error())
+			break
 		}
 	}
 }
@@ -168,6 +174,33 @@ func addDependency() {
 	}
 }
 
+func setup() {
+	if os.Geteuid() == 0 {
+		if err := writeTemplate(
+			resourcesFS,
+			"resources/templ",
+			"/usr/local/bin/templ",
+			nil,
+			false,
+		); err != nil {
+			fmt.Println("Failed to setup templ: ", err.Error())
+			return
+		}
+		if err := writeTemplate(
+			resourcesFS,
+			"resources/tailwindcss",
+			"/usr/local/bin/tailwindcss",
+			nil,
+			false,
+		); err != nil {
+			fmt.Println("Failed to setup tailwindcss: ", err.Error())
+			return
+		}
+		return
+	}
+	fmt.Println("Run this command as root")
+}
+
 func main() {
 	if len(os.Args) == 1 {
 		printHelp()
@@ -175,6 +208,8 @@ func main() {
 	}
 	cmd := os.Args[1]
 	switch cmd {
+	case "setup":
+		setup()
 	case "init":
 		initProject()
 	case "add-dependency":
