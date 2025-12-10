@@ -13,13 +13,13 @@ var static embed.FS
 //go:generate tailwindcss -i static/input.css -o static/styles.css -m
 
 func main(){
-  port := flag.String("port", "8080", "The port to start $project_name on")
+  port := flag.String("port", "8080", "The port to start {{.ProjectName}} on")
   flag.Parse()
   mux := http.NewServeMux()
 
   mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
     ctx := context.Background()
-    components.Index().Render(ctx, w)
+    ui.Index().Render(ctx, w)
   })
   mux.HandleFunc("GET /static/", http.FileServer(http.FS(static)).ServeHTTP)
 
