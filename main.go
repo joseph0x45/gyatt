@@ -120,11 +120,6 @@ func initProject() {
 			WriteDestination: "ui/index.templ",
 			FileSystem:       templatesFS,
 		},
-		{
-			Name:             "templates/go.sum",
-			WriteDestination: "go.sum",
-			FileSystem:       templatesFS,
-		},
 	}
 	for _, file := range projectFiles {
 		if err := writeTemplate(
@@ -136,9 +131,11 @@ func initProject() {
 			break
 		}
 	}
-	if err := runCmd("go", "mod", "tidy"); err != nil {
-		fmt.Println("Failed to run 'go mod tidy': ", err.Error())
-		return
+	for _, dependency := range []string{"jmoiron/sqlx", "mattn/go-sqlite3", "a-h/templ", "a-h/templ/runtime"} {
+		if err := runCmd("go", "get", fmt.Sprintf("github.com/%s", dependency)); err != nil {
+			fmt.Printf("Failed to install %s: %s\n", dependency, err.Error())
+			return
+		}
 	}
 	if err := runCmd("make", "build"); err != nil {
 		fmt.Println("Failed to build project: ", err.Error())
