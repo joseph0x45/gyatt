@@ -44,7 +44,7 @@ func writeTemplate(fileSystem embed.FS, name, destination string, data *Data, pa
 		return tmpl.Execute(outputFile, data)
 	}
 	input, _ := fileSystem.ReadFile(name)
-	return os.WriteFile(destination, input, 0644)
+	return os.WriteFile(destination, input, 0755)
 }
 
 //go:embed resources/*
@@ -136,6 +136,14 @@ func initProject() {
 			break
 		}
 	}
+	if err := runCmd("go", "mod", "tidy"); err != nil {
+		fmt.Println("Failed to run 'go mod tidy': ", err.Error())
+		return
+	}
+	if err := runCmd("make", "build"); err != nil {
+		fmt.Println("Failed to build project: ", err.Error())
+		return
+	}
 }
 
 func addDependency() {
@@ -176,23 +184,15 @@ func addDependency() {
 
 func setup() {
 	if os.Geteuid() == 0 {
-		if err := writeTemplate(
-			resourcesFS,
-			"resources/templ",
-			"/usr/local/bin/templ",
-			nil,
-			false,
-		); err != nil {
+		data, err := resourcesFS.ReadFile("resources/templ")
+		os.WriteFile("/usr/local/bin/templ", data, 0755)
+		if err != nil {
 			fmt.Println("Failed to setup templ: ", err.Error())
 			return
 		}
-		if err := writeTemplate(
-			resourcesFS,
-			"resources/tailwindcss",
-			"/usr/local/bin/tailwindcss",
-			nil,
-			false,
-		); err != nil {
+		data, err = resourcesFS.ReadFile("resources/tailwindcss")
+		os.WriteFile("/usr/local/bin/tailwindcss", data, 0755)
+		if err != nil {
 			fmt.Println("Failed to setup tailwindcss: ", err.Error())
 			return
 		}
