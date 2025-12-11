@@ -20,5 +20,5 @@ release:
 	GOOS=linux GOARCH=amd64 \
 	go build -ldflags "-X main.version=$(VERSION)" -o gyatt
 
-	tar -cJf gyatt-$(VERSION)-linux-amd64.tar.xz gyatt
+	tar -cJf gyatt.tar.xz gyatt
 	rm -f gyatt

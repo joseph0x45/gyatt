@@ -30,13 +30,11 @@ jobs:
         run: make resources
 
       - name: Build binary
-        run: |
-          GOOS=linux GOARCH=amd64 \
-          go build -ldflags "-X main.version=${VERSION}" -o gyatt
+        run: make release
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           name: "${{ env.VERSION }}"
           tag_name: "${{ env.VERSION }}"
-          files: gyatt
+          files: gyatt.tar.xz
