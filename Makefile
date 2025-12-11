@@ -1,5 +1,7 @@
 .PHONY: resources
 
+VERSION := $(shell git describe --tags --abbrev=0)
+
 build:
 	go build .
 
@@ -13,3 +15,10 @@ resources:
 
 compress-resources:
 	tar -cJf resources.tar.xz resources/
+
+release:
+	GOOS=linux GOARCH=amd64 \
+	go build -ldflags "-X main.version=$(VERSION)" -o gyatt
+
+	tar -cJf gyatt.tar.xz gyatt
+	rm -f gyatt
