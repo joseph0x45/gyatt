@@ -1,6 +1,6 @@
 .PHONY: resources
 
-VERSION := $(shell git describe --tags --always --dirty)
+VERSION := $(shell git describe --tags --abbrev=0)
 
 build:
 	go build .
